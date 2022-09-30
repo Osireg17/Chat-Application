@@ -3,15 +3,30 @@ const {UserInputError, AuthenticationError} = require('apollo-server-express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const {JWT_SECRET} = require('../config/env.json');
+const {Op} = require('sequelize');
 
 module.exports = { // resolvers are functions that return data for the schema
     Query: {
-        getUsers: async () => {
+        getUsers: async (_, __, context) => {
             try {
-                const users = await User.findAll();
+                let user
+                if(context.req && context.req.headers.authorization) {
+                const token = context.req.headers.authorization.split('Bearer ')[1]; //This just gets the token from the header
+                jwt.verify(token, JWT_SECRET, (err, decodedToken) => {
+                    if(err) {
+                        throw new AuthenticationError('Unauthenticated');
+                    }
+                    user = decodedToken;
+                })
+            }
+
+                const users = await User.findAll({
+                    where: {username: {[Op.ne]: user.username}} // This is a sequelize operator that says not equal to the current user
+                });
                 return users;
             } catch (err) {
                 console.log(err);
+                throw err;
             }
         },
         login: async(_, args) => {
