@@ -46,4 +46,8 @@ test('renders label for username', () => {
   expect(linkElement).toBeInTheDocument();
 });
 
+// Run test to check if text appears in input fields when user types in them
+
+
+
 
