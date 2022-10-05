@@ -1,7 +1,19 @@
 import React, {useState} from 'react'
 import {Card, Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { useMutation, gql } from '@apollo/client';
 
 type Props = {}
+
+const REGISTER_USER = gql`
+  mutation register($username: String!, $email: String!, $password: String!, $confirmPassword: String!) {
+    register(username: $username, email: $email, password: $password, confirmPassword: $confirmPassword) {
+      email
+      username
+      createdAt
+    }
+  }
+`;
+
 
 const Register = (props: Props) => {
 
@@ -13,9 +25,22 @@ const Register = (props: Props) => {
 
   });
 
+  const [errors, setErrors] = useState<any>({});
+
+  const [registerUser, {loading}] = useMutation(REGISTER_USER, {
+    update(_, result){
+      console.log(result);
+    },
+    onError(err){
+      console.log(err.graphQLErrors[0].extensions.errors);
+      setErrors(err.graphQLErrors[0].extensions.errors);
+    }
+  });
+
   const submitRegisterForm = (e: any)   => {
     e.preventDefault();
-    console.log('submitRegisterForm');
+    
+    registerUser({variables});
   }
 
   return (
@@ -26,30 +51,30 @@ const Register = (props: Props) => {
           <Form onSubmit={submitRegisterForm}>
           {/* Make a Form.Group for users to enter their name*/}
             <Form.Group className='mb-3'>
-              <Form.Label>Username</Form.Label>
-              <Form.Control id='username' type="text" placeholder=" Enter username" value ={variables.username} onChange = {(e) => setVariables({...variables, username: e.target.value})}/>
+              <Form.Label className={errors.username && 'text-danger'}>{errors.username ?? 'Username'}</Form.Label>
+              <Form.Control className={errors.username && 'is-invalid'} id='username' type="text" placeholder=" Enter username" value ={variables.username} onChange = {(e) => setVariables({...variables, username: e.target.value})}/>
             </Form.Group>
             {/* Make a Form.Group for users to enter their email*/}
           <Form.Group className="mb-3">
-            <Form.Label>Email address</Form.Label>
-            <Form.Control type="email" placeholder="Enter email" value ={variables.email} onChange = {(e) => setVariables({...variables, email: e.target.value})} />
+          <Form.Label className={errors.email && 'text-danger'}>{errors.email ?? 'Email'}</Form.Label>
+            <Form.Control className={errors.email && 'is-invalid'} type="email" placeholder="Enter email" value ={variables.email} onChange = {(e) => setVariables({...variables, email: e.target.value})} />
           </Form.Group>
 
           {/* Make a Form.Group for users to enter their password*/}
           <Form.Group className="mb-3">
-            <Form.Label>Password</Form.Label>
-            <Form.Control type="password" placeholder="Password" value={variables.password} onChange = {(e) => setVariables({...variables, password: e.target.value})}/>
+          <Form.Label className={errors.password && 'text-danger'}>{errors.password ?? 'Password'}</Form.Label>
+            <Form.Control className={errors.password && 'is-invalid'} type="password" placeholder="Password" value={variables.password} onChange = {(e) => setVariables({...variables, password: e.target.value})}/>
           </Form.Group>
           
           {/* Make the confirm password Form.Group */}
           <Form.Group className="mb-3">
-            <Form.Label>Confirm Password</Form.Label>
-            <Form.Control type="password" placeholder="Confirm Password" value={variables.confirmPassword} onChange = {(e) => setVariables({...variables, confirmPassword: e.target.value})}/>
+          <Form.Label className={errors.confirmPassword && 'text-danger'}>{errors.confirmPassword ?? 'Confirm Password'}</Form.Label>
+            <Form.Control className={errors.confirmPassword && 'is-invalid'} type="password" placeholder="Confirm Password" value={variables.confirmPassword} onChange = {(e) => setVariables({...variables, confirmPassword: e.target.value})}/>
           </Form.Group>
           
           <div className="text-center">
-          <Button variant="success" type="submit">
-            Register
+          <Button variant="success" type="submit" disabled={loading}>
+            {loading ? 'Loading...' : 'Register'}
           </Button>
           </div>
           </Form>
