@@ -48,7 +48,7 @@ module.exports = { // resolvers are functions that return data for the schema
                 const match = await bcrypt.compare(password, user.password);
                 if(!match) {
                     errors.general = 'Wrong credentials';
-                    throw new AuthenticationError('Wrong credentials', {errors});
+                    throw new UserInputError('Wrong credentials', {errors});
                 }
 
                 const token = jwt.sign({
