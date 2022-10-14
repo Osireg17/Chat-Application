@@ -86,5 +86,10 @@ test('confirm password error message appears when form is empty', () => {
   expect(error).toBeInTheDocument();
 });
 
+test('there is a link to login', () => {
+  render(<Register/>);
+  const linkElement = screen.getByRole('link', {name: /Login/i});
+  expect(linkElement).toBeInTheDocument();
+} );
 
 
