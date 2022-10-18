@@ -1,4 +1,4 @@
-const {User, Message} = require('../models/');
+const {User} = require('../models/');
 const {UserInputError, AuthenticationError} = require('apollo-server-express');  
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -10,16 +10,6 @@ module.exports = { // resolvers are functions that return data for the schema
         getUsers: async (_, __, {user}) => {
             try {
                 if(!user) throw new AuthenticationError('Unauthenticated');
-            //     if(context.req && context.req.headers.authorization) {
-            //     const token = context.req.headers.authorization.split('Bearer ')[1]; //This just gets the token from the header
-            //     jwt.verify(token, JWT_SECRET, (err, decodedToken) => {
-            //         if(err) {
-            //             throw new AuthenticationError('Unauthenticated');
-            //         }
-            //         user = decodedToken;
-            //     })
-            // }
-
                 const users = await User.findAll({
                     where: {username: {[Op.ne]: user.username}} // This is a sequelize operator that says not equal to the current user
                 });
@@ -126,28 +116,5 @@ module.exports = { // resolvers are functions that return data for the schema
                 throw new UserInputError('Bad input', {errors});
             }
         },
-        sendMessage: async (_, {to, content}, {user}) => {
-            try{
-                if(!user) throw new AuthenticationError('Unauthenticated');
-                const recipient = await User.findOne({where: {username: to}}); //I am looking for the user that I am sending the message to within the database
-
-                if (!recipient) {
-                    throw new UserInputError('User not found');
-                } else if (recipient.username === user.username) {
-                    throw new UserInputError('You cannot message yourself');
-                }
-                
-                if (content.trim() === '') throw new UserInputError('Message is empty');
-
-                const message =  await Message.create({
-                    from: user.username,
-                    to,
-                    content
-                })
-            }catch(err){
-                console.log(err);
-                throw err;
-            }
-        }
     }
 }
