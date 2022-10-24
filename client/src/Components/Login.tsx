@@ -7,6 +7,8 @@ import {useNavigate} from 'react-router-dom'
 // 2. remove confirm password field
 // 3. remove email field
 
+import { useAuthDispatch } from '../context/auth';
+
 
 
 const LOGIN_USER = gql`
@@ -33,12 +35,15 @@ const Login = (props: Props) => {
 
     const [errors, setErrors] = useState<any>({});
 
+    const dispatch = useAuthDispatch()// useAuthDispatch is a custom hook that returns the dispatch function from the AuthProvider
+
     const [loginUser, {loading}] = useLazyQuery(LOGIN_USER, {
         onError(err){
             setErrors(err.graphQLErrors[0].extensions.errors);
         },
         onCompleted(data){
             localStorage.setItem('token', data.login.token);
+            dispatch({type: 'LOGIN', payload: data.login});
             history('/');
         }
     });

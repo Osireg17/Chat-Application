@@ -10,9 +10,13 @@ import Home from './Components/Home';
 import Login from './Components/Login';
 
 
+import { AuthProvider } from './context/auth';
+
+
 function App() {
   return (
     <ApolloProvider>
+      <AuthProvider>
       <BrowserRouter>
         <Container className='pt-5'>
           <Routes>
@@ -23,6 +27,7 @@ function App() {
           </Routes>
         </Container>
       </BrowserRouter>
+      </AuthProvider>
     </ApolloProvider>
   );
 }
