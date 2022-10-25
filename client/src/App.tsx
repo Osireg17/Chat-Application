@@ -11,6 +11,7 @@ import Login from './Components/Login';
 
 
 import { AuthProvider } from './context/auth';
+import DynamicRoutes from './util/DynamicRoutes';
 
 
 function App() {
@@ -20,10 +21,9 @@ function App() {
       <BrowserRouter>
         <Container className='pt-5'>
           <Routes>
-            <Route path='/' element={<Home/>}/>
-            <Route path='/register' element={<Register/>}/>
-            <Route path='/login' element={<Login/>}/>
-            <Route path='*' element={<h1>404 Not Found</h1>}/>
+            <Route path='/' element={<Home />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/register' element={<Register />} />
           </Routes>
         </Container>
       </BrowserRouter>
