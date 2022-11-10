@@ -1,5 +1,5 @@
-import React from 'react'
-import { Col, Row , Button} from 'react-bootstrap'
+import React, { Fragment } from 'react'
+import { Col, Row , Button, Image} from 'react-bootstrap'
 import {Link} from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
 import {gql, useQuery} from '@apollo/client'
@@ -14,12 +14,15 @@ const GET_USERS = gql`
   query getUsers {
     getUsers {
       username
-      email
       createdAt
+      imageUrl
+      latestMessage {
+        uuid from to content createdAt
+      }
     }
   }
 `
-
+ 
 const Home = (props: Props) => {
   let history = useNavigate();
   const dispatch = useAuthDispatch();
@@ -30,9 +33,30 @@ const Home = (props: Props) => {
 
   const {loading, data, error} = useQuery(GET_USERS)
 
+
+  let usersMarkUp: any 
+
+  if(!data || loading){
+    usersMarkUp = <p>Loading...</p>
+  }else if(data.getUsers.length === 0){
+    usersMarkUp = <p>No users have joined yet</p>
+  }else if(data.getUsers.length > 0){
+    usersMarkUp = data.getUsers.map((user: any) => (
+      <div className='d-flex p-4' key={user.username}>
+        <Image src={user.imageUrl} roundedCircle className='mr-3' style={{width: 40, height: 40, objectFit: 'cover'}}/>
+        <div>
+          <p className='text-success'>{user.username}</p>
+        <p className="font-weight-light">
+          {user.latestMessage ? user.latestMessage.content : 'You are now connected!'}
+        </p>
+        </div>
+      </div>
+    ))
+  }
   
   return (
-    <Col className='bg-white justify-content-around'>
+    <Fragment>
+    <Col className='bg-white justify-content-around mb-1'>
       <Link to='/register'>
         <Button variant='link'>Register</Button>
       </Link>
@@ -41,6 +65,16 @@ const Home = (props: Props) => {
       </Link>
       <Button variant='link' onClick={logout}>Logout</Button>
     </Col>
+    <Row className='bg-white'>
+      <Col xs={4} className='p-0'>
+      {usersMarkUp}
+      </Col>
+
+      <Col xs={8}>
+      <p>messages</p>
+      </Col>
+    </Row>
+    </Fragment>
   )
 }
 

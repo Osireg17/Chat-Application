@@ -1,4 +1,4 @@
-const {User} = require('../models/');
+const {User, Message} = require('../models/');
 const {UserInputError, AuthenticationError} = require('apollo-server-express');  
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -10,9 +10,24 @@ module.exports = { // resolvers are functions that return data for the schema
         getUsers: async (_, __, {user}) => {
             try {
                 if(!user) throw new AuthenticationError('Unauthenticated');
-                const users = await User.findAll({
+                let users = await User.findAll({
+                    attributes: ['username', 'imageUrl', 'createdAt'],
                     where: {username: {[Op.ne]: user.username}} // This is a sequelize operator that says not equal to the current user
                 });
+
+                const allUserMessages = await Message.findAll({
+                    where: {
+                        [Op.or]: [{from: user.username}, {to: user.username}]
+                    },
+                    order: [['createdAt', 'DESC']]
+                });
+
+                users = users.map(OtherUser => {
+                    const latestMessage = allUserMessages.find(m => m.from === OtherUser.username || m.to === OtherUser.username);
+                    OtherUser.latestMessage = latestMessage;
+                    return OtherUser;
+                })
+
                 return users;
             } catch (err) {
                 console.log(err);

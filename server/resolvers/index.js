@@ -5,6 +5,9 @@ module.exports = {
     Message: {
         createdAt: (parent) => parent.createdAt.toISOString() //parent is forwarded from the previous resolver 
     },
+    User: {
+        createdAt: (parent) => parent.createdAt.toISOString()
+    },
     Query: {
         ...userResolver.Query,
         ...messageResolver.Query,
