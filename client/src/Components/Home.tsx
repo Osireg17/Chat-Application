@@ -1,13 +1,24 @@
-import React, {useState} from 'react'
+import React from 'react'
 import { Col, Row , Button} from 'react-bootstrap'
 import {Link} from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
+import {gql, useQuery} from '@apollo/client'
 
 import { useAuthDispatch } from '../context/auth'
 
 type Props = {
   history?: any
 }
+
+const GET_USERS = gql`
+  query getUsers {
+    getUsers {
+      username
+      email
+      createdAt
+    }
+  }
+`
 
 const Home = (props: Props) => {
   let history = useNavigate();
@@ -17,6 +28,9 @@ const Home = (props: Props) => {
     history('/login');
   }
 
+  const {loading, data, error} = useQuery(GET_USERS)
+
+  
   return (
     <Col className='bg-white justify-content-around'>
       <Link to='/register'>
