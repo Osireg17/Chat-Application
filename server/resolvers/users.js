@@ -25,10 +25,10 @@ module.exports = { // resolvers are functions that return data for the schema
                 users = users.map(OtherUser => {
                     const latestMessage = allUserMessages.find(m => m.from === OtherUser.username || m.to === OtherUser.username);
                     OtherUser.latestMessage = latestMessage;
-                    return OtherUser;
+                    return OtherUser
                 })
 
-                return users;
+                return users
             } catch (err) {
                 console.log(err);
                 throw err;

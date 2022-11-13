@@ -1,14 +1,10 @@
-import React, { Fragment } from 'react'
-import { Col, Row , Button, Image} from 'react-bootstrap'
-import {Link} from 'react-router-dom'
-import { useNavigate } from 'react-router-dom'
-import {gql, useQuery} from '@apollo/client'
+import React, { useEffect, useState, Fragment } from 'react'
+import { Row, Col, Button, Image } from 'react-bootstrap'
+import { Link, useNavigate } from 'react-router-dom'
+import { gql, useQuery, useLazyQuery } from '@apollo/client'
 
 import { useAuthDispatch } from '../context/auth'
 
-type Props = {
-  history?: any
-}
 
 const GET_USERS = gql`
   query getUsers {
@@ -17,65 +13,109 @@ const GET_USERS = gql`
       createdAt
       imageUrl
       latestMessage {
-        uuid from to content createdAt
+        uuid
+        from
+        to
+        content
+        createdAt
       }
     }
   }
 `
- 
-const Home = (props: Props) => {
-  let history = useNavigate();
-  const dispatch = useAuthDispatch();
+
+const GET_MESSAGES = gql`
+  query getMessages($from: String!) {
+    getMessages(from: $from) {
+      uuid
+      from
+      to
+      content
+      createdAt
+    }
+  }
+`
+
+export default function Home() {
+  let history = useNavigate()
+  const dispatch = useAuthDispatch()
+  const [selectedUser, setSelectedUser] = useState(null)
+
   const logout = () => {
-    dispatch({type: 'LOGOUT'});
-    history('/login');
+    dispatch({ type: 'LOGOUT' })
+    history('/login')
   }
 
-  const {loading, data, error} = useQuery(GET_USERS)
+  const { loading, data, error } = useQuery(GET_USERS)
 
+  const [
+    getMessages,
+    { loading: messagesLoading, data: messagesData },
+  ] = useLazyQuery(GET_MESSAGES)
 
-  let usersMarkUp: any 
+  useEffect(() => {
+    if (selectedUser) {
+      getMessages({ variables: { from: selectedUser } })
+    }
+  }, [selectedUser])
 
-  if(!data || loading){
-    usersMarkUp = <p>Loading...</p>
-  }else if(data.getUsers.length === 0){
-    usersMarkUp = <p>No users have joined yet</p>
-  }else if(data.getUsers.length > 0){
-    usersMarkUp = data.getUsers.map((user: any) => (
-      <div className='d-flex p-4' key={user.username}>
-        <Image src={user.imageUrl} roundedCircle className='mr-3' style={{width: 40, height: 40, objectFit: 'cover'}}/>
+  if (messagesData) console.log(messagesData.getMessages)
+
+  let usersMarkup: any
+  if (!data || loading) {
+    usersMarkup = <p>Loading..</p>
+  } else if (data.getUsers.length === 0) {
+    usersMarkup = <p>No users have joined yet</p>
+  } else if (data.getUsers.length > 0) {
+    usersMarkup = data.getUsers.map((user: any) => (
+      <div
+        className="d-flex p-3"
+        key={user.username}
+        onClick={() => setSelectedUser(user.username)}
+      >
+        <Image
+          src={user.imageUrl}
+          roundedCircle
+          className="mr-2"
+          style={{ width: 50, height: 50, objectFit: 'cover' }}
+        />
         <div>
-          <p className='text-success'>{user.username}</p>
-        <p className="font-weight-light">
-          {user.latestMessage ? user.latestMessage.content : 'You are now connected!'}
-        </p>
+          <p className="text-success">{user.username}</p>
+          <p className="font-weight-light">
+            {user.latestMessage
+              ? user.latestMessage.content
+              : 'You are now connected!'}
+          </p>
         </div>
       </div>
     ))
   }
-  
   return (
     <Fragment>
-    <Col className='bg-white justify-content-around mb-1'>
-      <Link to='/register'>
-        <Button variant='link'>Register</Button>
-      </Link>
-      <Link to='/login'>
-        <Button variant='link'>Login</Button>
-      </Link>
-      <Button variant='link' onClick={logout}>Logout</Button>
-    </Col>
-    <Row className='bg-white'>
-      <Col xs={4} className='p-0'>
-      {usersMarkUp}
+      <Col className="bg-white justify-content-around mb-1">
+        <Link to="/login">
+          <Button variant="link">Login</Button>
+        </Link>
+        <Link to="/register">
+          <Button variant="link">Register</Button>
+        </Link>
+        <Button variant="link" onClick={logout}>
+          Logout
+        </Button>
       </Col>
-
-      <Col xs={8}>
-      <p>messages</p>
-      </Col>
-    </Row>
+      <Row className="bg-white">
+        <Col xs={4} className="p-0 bg-secondary">
+          {usersMarkup}
+        </Col>
+        <Col xs={8}>
+          {messagesData && messagesData.getMessages.length > 0 ? (
+            messagesData.getMessages.map((message: any) => (
+              <p key={message.uuid}>{message.content}</p>
+            ))
+          ) : (
+            <p>Messages</p>
+          )}
+        </Col>
+      </Row>
     </Fragment>
   )
 }
-
-export default Home

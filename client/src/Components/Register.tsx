@@ -33,7 +33,7 @@ const Register = (props: Props) => {
 
   const [registerUser, {loading}] = useMutation(REGISTER_USER, {
     update(_, __){
-        history('/login');
+        history('/');
     },
     onError(err){
       setErrors(err.graphQLErrors[0].extensions.errors);
